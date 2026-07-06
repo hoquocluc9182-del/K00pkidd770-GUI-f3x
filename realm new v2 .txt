@@ -1,0 +1,250 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RequestCommand = ReplicatedStorage:WaitForChild("HDAdminHDClient").Signals.RequestCommandSilent
+
+-- 1. CHẠY CÁC LỆNH ADMIN ĐẦU TIÊN (DỌN MAP + SET EFFECT BẢO VỆ)
+RequestCommand:InvokeServer(";btools me")
+RequestCommand:InvokeServer(";fogcolor black ;time 17")
+wait(0.4)
+RequestCommand:InvokeServer(";punish all") -- Trừng phạt kẻ phá hoại
+wait(0.1)
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local remote = nil
+
+-- Quét tìm Remote F3X chuẩn
+for _, v in pairs(game:GetDescendants()) do
+    if v.Name == "ServerEndpoint" and v:IsA("RemoteFunction") then
+        remote = v
+        break
+    end
+end
+
+if not remote then warn("k00pkidd770 GUI: Chưa cầm búa F3X nha bro!") return end
+
+-- Bộ hàm Core tương tác hệ thống chuẩn F3X (Có SetLocked)
+local function resize(part, size, cf)
+    remote:InvokeServer("SyncResize", {{["Part"] = part, ["CFrame"] = cf, ["Size"] = size}})
+end
+
+local function color(part, color)
+    remote:InvokeServer("SyncColor", {{["Part"] = part, ["Color"] = color, ["UnionColoring"] = false}})
+end
+
+local function setanchor(part, boolean)
+    remote:InvokeServer("SyncAnchor", {{["Part"] = part, ["Anchored"] = boolean}})
+end
+
+local function lock(part, boolean)
+    remote:InvokeServer("SetLocked", {part}, boolean)
+end
+
+local function name(part, stringa)
+    remote:InvokeServer("SetName", {part}, stringa)
+end
+
+local function syncmaterial(part, mate)
+    remote:InvokeServer("SyncMaterial", {{["Part"] = part, ["Material"] = mate}})
+end
+
+local function transparency(part, trans)
+    remote:InvokeServer("SyncMaterial", {{["Part"] = part, ["Transparency"] = trans}})
+end
+
+local function setcollision(part, booleana)
+    remote:InvokeServer("SyncCollision", {{["Part"] = part, ["CanCollide"] = booleana}})
+end
+
+local function createdecal(part, side)
+    remote:InvokeServer("CreateTextures", {{["Part"] = part, ["Face"] = side, ["TextureType"] = "Decal"}})
+end
+
+local function setdecal(part, asset, side)
+    remote:InvokeServer("SyncTexture", {{["Part"] = part, ["Face"] = side, ["TextureType"] = "Decal", ["Texture"] = "rbxassetid://".. asset}})
+end
+
+local function makemesh(part)
+    remote:InvokeServer("CreateMeshes", {{["Part"] = part}})
+end
+
+local function syncmeshid(part, id)
+    remote:InvokeServer("SyncMesh", {{["Part"] = part, ["MeshId"] = "rbxassetid://"..id}})
+end
+
+local function syncmeshtexture(part, id)
+    remote:InvokeServer("SyncMesh", {{["Part"] = part, ["TextureId"] = "rbxassetid://"..id}})
+end
+
+local function syncmeshsize(part, vectora)
+    remote:InvokeServer("SyncMesh", {{["Part"] = part, ["Scale"] = vectora}})
+end
+
+-- Hàm tạo hiệu ứng khói bảo vệ che mắt
+local function AddSmokeToPart(part)
+    remote:InvokeServer("CreateEffects", {{["Part"] = part, ["EffectType"] = "Smoke"}})
+    remote:InvokeServer("SyncSmoke", {{
+        ["Part"] = part, 
+        ["Color"] = Color3.fromRGB(220, 220, 220), 
+        ["Opacity"] = 0.8, 
+        ["RiseVelocity"] = 15, 
+        ["Size"] = 25
+    }})
+end
+
+-- Lệnh xóa sạch các Part cũ trên map để tránh bị đè vật thể
+local function delete(part)
+    remote:InvokeServer("Remove", {part})
+end
+
+for _, v in ipairs(workspace:GetDescendants()) do
+    if v:IsA("BasePart") or v:IsA("UnionOperation") then
+        spawn(function() delete(v) end)
+    end
+end
+wait(0.5)
+
+-- Hàm tạo Part gốc
+local function SpawnPart(partType, partName, size, targetCF, partColor)
+    local part = remote:InvokeServer("CreatePart", partType or "Normal", targetCF, workspace)
+    task.wait(0.05)
+    if part then
+        name(part, partName)
+        resize(part, size, targetCF)
+        color(part, partColor)
+        setanchor(part, true)
+        lock(part, true) -- Khóa đóng băng ngay lập tức
+    end
+    return part
+end
+
+-- Kho dữ liệu Asset ID của Team k00pkidd770
+local idSky         = "89145710208026"
+local greenDecalID  = "57029310" 
+local welcomeID     = "135316896721166" 
+local idTham        = "290658294" 
+
+local legTextureID  = "113175559622512" 
+local armBaseID     = "88685490733031"  
+local armTopID      = "121503307974611" 
+local torsoFrontID  = "78350893947928"
+local torsoBackID   = "94784904848082"
+local torsoTopID    = "121591103749179"
+local faceTextureID = "131359259709294"
+local grayColor     = Color3.fromRGB(128, 128, 128)
+
+print("🚀 Team k00pkidd770: Đang dựng map hệ thống + Gửi lệnh HD Admin...")
+
+-- 2. SKYBOX SIÊU TO BỰ YAAZKIDD (SetLocked Đóng băng)
+spawn(function()
+    local skyPart = remote:InvokeServer("CreatePart", "Normal", CFrame.new(0, 50, 0), workspace)
+    task.wait(0.2)
+    if skyPart then
+        name(skyPart, "k00pkidd770_Sky")
+        makemesh(skyPart)
+        syncmeshid(skyPart, "111891702759441")
+        syncmeshtexture(skyPart, idSky)
+        syncmeshsize(skyPart, Vector3.new(12000, 12000, 12000))
+        setcollision(skyPart, false)
+        lock(skyPart, true)
+    end
+end)
+
+-- 3. TẤM ĐẾ SIÊU TO MÊNH MÔNG (400x400)
+local base = SpawnPart("Normal", "k00p_Base_Huge", Vector3.new(400, 1, 400), CFrame.new(0, -0.5, 0), Color3.fromRGB(91, 93, 105))
+if base then syncmaterial(base, Enum.Material.Brick) end
+task.wait(0.1)
+
+-- 4. TẠO LỚP KHÓI BẢO VỆ CHE MẮT BỐN CẠNH (ĐƯỢC KHÓA CHẶT LUÔN)
+spawn(function()
+    local smokeWallNorth = SpawnPart("Normal", "k00p_SmokeWall_N", Vector3.new(400, 1, 2), CFrame.new(0, -0.4, -198), Color3.fromRGB(0,0,0))
+    if smokeWallNorth then transparency(smokeWallNorth, 1) AddSmokeToPart(smokeWallNorth) end
+    
+    local smokeWallSouth = SpawnPart("Normal", "k00p_SmokeWall_S", Vector3.new(400, 1, 2), CFrame.new(0, -0.4, 198), Color3.fromRGB(0,0,0))
+    if smokeWallSouth then transparency(smokeWallSouth, 1) AddSmokeToPart(smokeWallSouth) end
+    
+    local smokeWallEast  = SpawnPart("Normal", "k00p_SmokeWall_E", Vector3.new(2, 1, 400), CFrame.new(198, -0.4, 0), Color3.fromRGB(0,0,0))
+    if smokeWallEast then transparency(smokeWallEast, 1) AddSmokeToPart(smokeWallEast) end
+    
+    local smokeWallWest  = SpawnPart("Normal", "k00p_SmokeWall_W", Vector3.new(2, 1, 400), CFrame.new(-198, -0.4, 0), Color3.fromRGB(0,0,0))
+    if smokeWallWest then transparency(smokeWallWest, 1) AddSmokeToPart(smokeWallWest) end
+end)
+
+-- 5. TẤM THẢM HOA VĂN ĐỎ DƯỚI CHÂN TƯỢNG
+local carpet = SpawnPart("Normal", "k00p_Carpet", Vector3.new(6, 1, 12), CFrame.new(0, -0.49, -3), Color3.fromRGB(200, 200, 200))
+if carpet then
+    syncmaterial(carpet, Enum.Material.SmoothPlastic)
+    createdecal(carpet, Enum.NormalId.Top)
+    setdecal(carpet, idTham, Enum.NormalId.Top)
+end
+task.wait(0.1)
+
+-- 6. TẤM SPAWN (CHECKPOINT) HOA VĂN XANH LÁ TÀN HÌNH KHÓA CHẶT
+local newPlate = SpawnPart("Spawn", "k00p_NewPlate", Vector3.new(11, 1, 10), CFrame.new(0.603, -0.48, -18.123), Color3.fromRGB(200, 200, 200))
+if newPlate then
+    syncmaterial(newPlate, Enum.Material.SmoothPlastic)
+    task.wait(0.05)
+    createdecal(newPlate, Enum.NormalId.Top)
+    setdecal(newPlate, greenDecalID, Enum.NormalId.Top) 
+    task.wait(0.05)
+    transparency(newPlate, 1)
+end
+task.wait(0.1)
+
+-- 7. BẢNG WELCOME REALM QUAY GÓC CHUẨN ĐÉT
+local targetCF = CFrame.new(-8.058, 5.453, -18.281) * CFrame.Angles(0, math.rad(-90), 0)
+local welcomePlate = SpawnPart("Normal", "k00p_WelcomePlate", Vector3.new(13, 11, 1), targetCF, Color3.fromRGB(240, 240, 240))
+if welcomePlate then
+    syncmaterial(welcomePlate, Enum.Material.SmoothPlastic)
+    createdecal(welcomePlate, Enum.NormalId.Front)
+    setdecal(welcomePlate, welcomeID, Enum.NormalId.Front)
+end
+task.wait(0.1)
+
+-- 8. DỰNG TƯỢNG NGƯỜI VEST TRẮNG KHÓA CHẶT TỪNG BỘ PHẬN
+local bodyParts = {
+    {Name = "LeftLeg", Size = Vector3.new(2, 4, 2), CF = CFrame.new(-1, 2, 6), Type = "Leg"},
+    {Name = "RightLeg", Size = Vector3.new(2, 4, 2), CF = CFrame.new(1, 2, 6), Type = "Leg"},
+    {Name = "Torso", Size = Vector3.new(4, 4, 2), CF = CFrame.new(0, 6, 6), Type = "Torso"},
+    {Name = "LeftArm", Size = Vector3.new(2, 4, 2), CF = CFrame.new(-3, 6, 6), Type = "Arm"},
+    {Name = "RightArm", Size = Vector3.new(2, 4, 2), CF = CFrame.new(3, 6, 6), Type = "Arm"}
+}
+
+for _, data in ipairs(bodyParts) do
+    local part = SpawnPart("Normal", "k00p_" .. data.Name, data.Size, data.CF, grayColor)
+    if part then
+        if data.Type == "Leg" then for _, s in ipairs({Enum.NormalId.Front, Enum.NormalId.Back, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Top, Enum.NormalId.Bottom}) do createdecal(part, s) setdecal(part, legTextureID, s) end
+        elseif data.Type == "Torso" then createdecal(part, Enum.NormalId.Front) setdecal(part, torsoFrontID, Enum.NormalId.Front) createdecal(part, Enum.NormalId.Back) setdecal(part, torsoBackID, Enum.NormalId.Back) createdecal(part, Enum.NormalId.Top) setdecal(part, torsoTopID, Enum.NormalId.Top)
+        elseif data.Type == "Arm" then for _, s in ipairs({Enum.NormalId.Front, Enum.NormalId.Back, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Bottom}) do createdecal(part, s) setdecal(part, armBaseID, s) end createdecal(part, Enum.NormalId.Top) setdecal(part, armTopID, Enum.NormalId.Top) end
+    end
+end
+
+-- Đầu và nón Mesh của tượng người Vest Trắng
+local head = SpawnPart("Normal", "k00p_Head", Vector3.new(2, 2, 2), CFrame.new(0, 9, 6), grayColor)
+if head then 
+    makemesh(head) 
+    task.wait(0.05)
+    syncmeshsize(head, Vector3.new(1.25, 1.25, 1.25)) 
+    createdecal(head, Enum.NormalId.Front)
+    setdecal(head, faceTextureID, Enum.NormalId.Front)
+end
+
+local hat = SpawnPart("Normal", "k00p_Hat", Vector3.new(2, 2, 2), CFrame.new(0, 9.95, 5.81), grayColor)
+if hat then 
+    makemesh(hat) 
+    task.wait(0.05)
+    syncmeshid(hat, "46834172")
+    syncmeshtexture(hat, "47991609")
+    syncmeshsize(hat, Vector3.new(2.2, 2.2, 2.2))
+end
+
+-- 9. GỬI LỆNH PHÁT NHẠC DỰ BÁO LÊN SERVER KHI DỰNG XONG MAP
+wait(0.5)
+RequestCommand:InvokeServer(";res all")
+wait(0.3)
+RequestCommand:InvokeServer(";r6 all")
+-- Bật bản nhạc yêu cầu của bro
+RequestCommand:InvokeServer(";music 85390427326662 ;pitch 0.1 ;volume inf ;savemap")
+
+RequestCommand:InvokeServer(";music 85390427326662 ;pitch 0.1 ;volume inf ;savemap")
+
+print("✅ Team k00pkidd770: Đã kích hoạt lệnh Admin phát nhạc thành công! Bản đồ đã hoàn thành đóng băng!")
