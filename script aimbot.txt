@@ -1,0 +1,319 @@
+-- Xóa GUI cũ nếu có để tránh trùng lặp
+if game:GetService("CoreGui"):FindFirstChild("K00pkiddMenu") then
+    game:GetService("CoreGui"):FindFirstChild("K00pkiddMenu"):Destroy()
+end
+if game:GetService("CoreGui"):FindFirstChild("K00pkiddFPS") then
+    game:GetService("CoreGui"):FindFirstChild("K00pkiddFPS"):Destroy()
+end
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local TweenInf = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local CloseTweenInf = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
+-- Màu vẽ cố định: Màu Trắng Xám tối giản (Dịu mắt, bảo vệ sức khỏe)
+local VisualColor = Color3.fromRGB(220, 220, 220)
+
+-- ==========================================
+-- 1. BẢNG HIỆN FPS RETRO PIXEL
+-- ==========================================
+local FpsGui = Instance.new("ScreenGui")
+local FpsLabel = Instance.new("TextLabel")
+
+FpsGui.Name = "K00pkiddFPS"
+FpsGui.Parent = game:GetService("CoreGui")
+
+FpsLabel.Name = "FpsLabel"
+FpsLabel.Parent = FpsGui
+FpsLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+FpsLabel.BackgroundTransparency = 0.6
+FpsLabel.Position = UDim2.new(0.01, 0, 0.01, 0)
+FpsLabel.Size = UDim2.new(0, 130, 0, 35)
+FpsLabel.Font = Enum.Font.Arcade
+FpsLabel.Text = "FPS: --"
+FpsLabel.TextColor3 = VisualColor
+FpsLabel.TextSize = 24
+FpsLabel.BorderSizePixel = 0
+
+local FpsCorner = Instance.new("UICorner")
+FpsCorner.CornerRadius = UDim.new(0, 4)
+FpsCorner.Parent = FpsLabel
+
+-- ==========================================
+-- 2. NÚT BẤM ĐÓNG MỞ MENU
+-- ==========================================
+local ToggleButton = Instance.new("TextButton")
+local ToggleCorner = Instance.new("UICorner")
+local ToggleStroke = Instance.new("UIStroke")
+
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = FpsGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.BackgroundTransparency = 0.2
+ToggleButton.Position = UDim2.new(0.01, 0, 0.15, 0)
+ToggleButton.Size = UDim2.new(0, 130, 0, 35)
+ToggleButton.Font = Enum.Font.Arcade
+ToggleButton.Text = "MENU"
+ToggleButton.TextColor3 = VisualColor
+ToggleButton.TextSize = 20
+ToggleButton.BorderSizePixel = 0
+
+ToggleCorner.CornerRadius = UDim.new(0, 4)
+ToggleCorner.Parent = ToggleButton
+
+ToggleStroke.Thickness = 1.5
+ToggleStroke.Color = VisualColor
+ToggleStroke.Parent = ToggleButton
+
+-- ==========================================
+-- 3. KHUNG MENU CHÍNH CHUẨN GỐC (ĐÃ XÓA ẢNH XOAY)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ContentFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+
+local MenuUIStroke = Instance.new("UIStroke")
+MenuUIStroke.Thickness = 2
+MenuUIStroke.Color = VisualColor
+MenuUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MenuUIStroke.Parent = MainFrame
+
+ScreenGui.Name = "K00pkiddMenu"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+local OriginalSize = UDim2.new(0, 300, 0, 260) -- Thu nhỏ chiều cao vì đã bỏ phần ảnh
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Size = OriginalSize
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true 
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Font = Enum.Font.Arcade
+Title.Text = "k00pkidd770 - aimbot"
+Title.TextColor3 = VisualColor
+Title.TextSize = 22
+
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ContentFrame.Position = UDim2.new(0, 10, 0, 50)
+ContentFrame.Size = UDim2.new(1, -20, 1, -60)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ClipsDescendants = true
+
+UIListLayout.Parent = ContentFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)
+
+local function CreateToggle(name, default, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Parent = ContentFrame
+    Button.Size = UDim2.new(1, 0, 0, 38)
+    Button.BackgroundColor3 = default and Color3.fromRGB(75, 75, 75) or Color3.fromRGB(45, 45, 45)
+    Button.Font = Enum.Font.Arcade
+    Button.Text = name .. ": " .. (default and "ON" or "OFF")
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 16
+    Button.BorderSizePixel = 0
+    
+    local enabled = default
+    Button.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        Button.BackgroundColor3 = enabled and Color3.fromRGB(75, 75, 75) or Color3.fromRGB(45, 45, 45)
+        Button.Text = name .. ": " .. (enabled and "ON" or "OFF")
+        callback(enabled)
+    end)
+end
+
+local isOpened = true
+ToggleButton.MouseButton1Click:Connect(function()
+    if isOpened then
+        isOpened = false
+        local CloseTween = TweenService:Create(MainFrame, CloseTweenInf, {Size = UDim2.new(0, 0, 0, 0)})
+        CloseTween:Play()
+        CloseTween.Completed:Connect(function()
+            if not isOpened then MainFrame.Visible = false end
+        end)
+    else
+        isOpened = true
+        MainFrame.Visible = true
+        local OpenTween = TweenService:Create(MainFrame, TweenInf, {Size = OriginalSize})
+        OpenTween:Play()
+    end
+end)
+
+-- ==========================================
+-- 4. ĐẦY ĐỦ LOGIC TÍNH NĂNG GỐC - ĐÃ TỐI ƯU FPS
+-- ==========================================
+local Camera = game:GetService("Workspace").CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local AimbotEnabled = false
+local FOVVisible = false
+local FOVRadius = 120
+
+local ESPBoxes = false
+local ESPTracers = false
+
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1.5
+FOVCircle.NumSides = 32 
+FOVCircle.Radius = FOVRadius
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+FOVCircle.Color = VisualColor
+
+CreateToggle("AIMBOT", false, function(v) AimbotEnabled = v end)
+CreateToggle("SHOW FOV", false, function(v) FOVVisible = v; FOVCircle.Visible = v end)
+CreateToggle("ESP BOXES", false, function(v) ESPBoxes = v end)
+CreateToggle("ESP TRACERS", false, function(v) ESPTracers = v end)
+
+local ActiveESP = {}
+
+local function ClearESP(player)
+    if ActiveESP[player] then
+        ActiveESP[player].Box.Visible = false
+        ActiveESP[player].Box:Remove()
+        ActiveESP[player].Tracer.Visible = false
+        ActiveESP[player].Tracer:Remove()
+        ActiveESP[player] = nil
+    end
+end
+
+local function ApplyESP(player)
+    if player == LocalPlayer then return end
+    ClearESP(player)
+    
+    ActiveESP[player] = {
+        Box = Drawing.new("Square"),
+        Tracer = Drawing.new("Line")
+    }
+    ActiveESP[player].Box.Thickness = 1.5
+    ActiveESP[player].Box.Filled = false
+    ActiveESP[player].Box.Visible = false
+    ActiveESP[player].Box.Color = VisualColor
+    
+    ActiveESP[player].Tracer.Thickness = 1.5
+    ActiveESP[player].Tracer.Visible = false
+    ActiveESP[player].Tracer.Color = VisualColor
+end
+
+for _, p in pairs(Players:GetPlayers()) do ApplyESP(p) end
+Players.PlayerAdded:Connect(ApplyESP)
+Players.PlayerRemoving:Connect(ClearESP)
+
+local LastFpsTime = 0 
+local FrameCount = 0
+
+local function IsVisible(targetCharacter)
+    if not targetCharacter or not targetCharacter:FindFirstChild("Head") then return false end
+    local parts = Camera:GetPartsObscuringTarget({Camera.CFrame.Position, targetCharacter.Head.Position}, {LocalPlayer.Character, targetCharacter})
+    return #parts == 0
+end
+
+local function GetClosestPlayer()
+    local ClosestTarget = nil
+    local MaxDistance = FOVRadius
+    local MousePosition = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            local root = char:FindFirstChild("HumanoidRootPart")
+            local hum = char:FindFirstChild("Humanoid")
+            
+            if root and hum and hum.Health > 0 then
+                local ScreenPosition, OnScreen = Camera:WorldToViewportPoint(root.Position)
+                if OnScreen then
+                    local Distance = (Vector2.new(ScreenPosition.X, ScreenPosition.Y) - MousePosition).Magnitude
+                    if Distance < MaxDistance and IsVisible(char) then
+                        ClosestTarget = player
+                        MaxDistance = Distance
+                    end
+                end
+            end
+        end
+    end
+    return ClosestTarget
+end
+
+-- VÒNG LẶP CHÍNH MƯỢT MÀ, GIẢM TẢI CHO MÁY
+RunService.RenderStepped:Connect(function(deltaTime)
+    -- Thuật toán tính FPS trung bình mượt hơn, tránh nhảy số ảo liên tục
+    FrameCount = FrameCount + 1
+    LastFpsTime = LastFpsTime + deltaTime
+    if LastFpsTime >= 0.5 then 
+        local ActualFPS = math.floor(FrameCount / LastFpsTime)
+        FpsLabel.Text = "FPS: " .. tostring(ActualFPS)
+        FrameCount = 0
+        LastFpsTime = 0
+    end
+
+    if FOVVisible then
+        FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    end
+
+    if AimbotEnabled then
+        local Target = GetClosestPlayer()
+        if Target and Target.Character and Target.Character:FindFirstChild("Head") then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Character.Head.Position)
+        end
+    end
+
+    -- Quét hệ thống ESP có giới hạn khoảng cách để tránh drop FPS xuống 5
+    for player, esp in pairs(ActiveESP) do
+        if (ESPBoxes or ESPTracers) and player.Character and LocalPlayer.Character then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            local hum = player.Character:FindFirstChild("Humanoid")
+            local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            
+            -- Chỉ vẽ ESP nếu mục tiêu còn sống và không ở quá xa (Tránh lag máy)
+            if root and hum and hum.Health > 0 and localRoot and (root.Position - localRoot.Position).Magnitude < 800 then
+                local Position, OnScreen = Camera:WorldToViewportPoint(root.Position)
+                
+                if OnScreen then
+                    if ESPBoxes then
+                        local SizeX = Camera.ViewportSize.X / Position.Z * 2.5
+                        local SizeY = Camera.ViewportSize.Y / Position.Z * 2.5
+                        esp.Box.Size = Vector2.new(SizeX, SizeY)
+                        esp.Box.Position = Vector2.new(Position.X - SizeX / 2, Position.Y - SizeY / 2)
+                        esp.Box.Visible = true
+                    else
+                        esp.Box.Visible = false
+                    end
+                    
+                    if ESPTracers then
+                        esp.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                        esp.Tracer.To = Vector2.new(Position.X, Position.Y)
+                        esp.Tracer.Visible = true
+                    else
+                        esp.Tracer.Visible = false
+                    end
+                else
+                    esp.Box.Visible = false
+                    esp.Tracer.Visible = false
+                end
+            else
+                esp.Box.Visible = false
+                esp.Tracer.Visible = false
+            end
+        else
+            esp.Box.Visible = false
+            esp.Tracer.Visible = false
+        end
+    end
+end)
