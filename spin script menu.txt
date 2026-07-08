@@ -1,0 +1,69 @@
+-- Khởi tạo dịch vụ
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- 1. Tạo giao diện UI chứa
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VNGDiscGuiLagFix"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- 2. Tạo ViewportFrame sát góc dưới bên trái
+local ViewportFrame = Instance.new("ViewportFrame")
+ViewportFrame.Size = UDim2.new(0, 180, 0, 180)
+ViewportFrame.Position = UDim2.new(0, 0, 1, -180)
+ViewportFrame.BackgroundTransparency = 1
+-- Tối ưu hóa render chuyên dụng cho Viewport
+ViewportFrame.Ambient = Color3.fromRGB(255, 255, 255)
+ViewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+ViewportFrame.Parent = ScreenGui
+
+-- 3. Tạo Camera cố định
+local vpfCamera = Instance.new("Camera")
+vpfCamera.FieldOfView = 55
+ViewportFrame.CurrentCamera = vpfCamera
+vpfCamera.Parent = ViewportFrame
+vpfCamera.CFrame = CFrame.new(0, 0, 8)
+
+-- 4. Tạo tấm đĩa siêu mỏng
+local disc3D = Instance.new("Part")
+disc3D.Shape = Enum.PartType.Block
+disc3D.Size = Vector3.new(5.8, 5.8, 0.001)
+disc3D.Material = Enum.Material.SmoothPlastic
+disc3D.Color = Color3.fromRGB(255, 255, 255)
+-- Tắt mọi tính năng thừa thãi để tránh tốn CPU/GPU
+disc3D.Anchored = true
+disc3D.CanCollide = false
+disc3D.CanTouch = false
+disc3D.CanQuery = false
+disc3D.CastShadow = false
+disc3D.Parent = ViewportFrame
+
+-- Dán ID hình ảnh lên 2 mặt
+local decalFront = Instance.new("Decal")
+decalFront.Texture = "rbxassetid://132145802677911"
+decalFront.Face = Enum.NormalId.Front
+decalFront.Parent = disc3D
+
+local decalBack = Instance.new("Decal")
+decalBack.Texture = "rbxassetid://132145802677911"
+decalBack.Face = Enum.NormalId.Back
+decalBack.Parent = disc3D
+
+-- 5. Vòng lặp xoay mượt mà đã được giới hạn thời gian (Throttling)
+local currentAngle = 0
+local lastUpdate = 0
+local updateInterval = 1/60 -- Giới hạn tối đa 60 FPS cho UI, không cho đè lên cấu hình máy
+
+RunService.RenderStepped:Connect(function(deltaTime)
+    lastUpdate = lastUpdate + deltaTime
+    if lastUpdate >= updateInterval then
+        currentAngle = currentAngle + (3 * lastUpdate)
+        disc3D.CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(0, currentAngle, 0)
+        lastUpdate = 0
+    end
+end)
+
+print("Đã kích hoạt đĩa xoay phiên bản tối ưu chống lag!")
